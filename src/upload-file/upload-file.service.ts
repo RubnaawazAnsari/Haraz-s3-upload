@@ -1,13 +1,8 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-// import { ConfigService } from '@nestjs/config';
-
 import { AppConfigService } from '../services/config/config.service';
 
 import { S3 } from 'aws-sdk';
 import { v4 as uuid } from 'uuid';
-
-// import { PrismaService } from '../prisma/prisma.service';
-// import { FileUploadModuleMessages } from 'src/utils/appMessges';
 
 @Injectable()
 export class UploadFileService {
