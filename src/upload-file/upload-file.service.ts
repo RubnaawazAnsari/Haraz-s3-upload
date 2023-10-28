@@ -1,5 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+// import { ConfigService } from '@nestjs/config';
+
+import { AppConfigService } from '../services/config/config.service';
 
 import { S3 } from 'aws-sdk';
 import { v4 as uuid } from 'uuid';
@@ -10,13 +12,19 @@ import { v4 as uuid } from 'uuid';
 @Injectable()
 export class UploadFileService {
   private s3: S3;
-  constructor() {
+  private readonly bucketName: string;
+  private readonly accessKeyId: string;
+  private readonly secretAccessKey: string;
+  constructor(
+    private configService: AppConfigService,
+  ) {
+    const { bucketName, accessKeyID, secretAccessKey } = this.configService.getS3BucketConfigs();
+    this.bucketName = bucketName;
+    this.accessKeyId = accessKeyID;
+    this.secretAccessKey = secretAccessKey;
     this.s3 = new S3({
-      
-      // accessKeyId: this.configService.get('AWS_S3_ACCESS_KEY_ID'),
-      // secretAccessKey: this.configService.get('AWS_S3_SECRET_ACCESS_KEY'),
-      accessKeyId: "AKIA4TMBQOVLHXFIIZOY",
-      secretAccessKey: "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",
+      accessKeyId: this.accessKeyId,
+      secretAccessKey: this.secretAccessKey,
     });
   }
 
@@ -27,7 +35,7 @@ export class UploadFileService {
       var base64data = Buffer.from(buffer, 'binary');
       const uploadResult = await this.s3
         .upload({
-          Bucket: "harazdentalmedia",
+          Bucket: this.bucketName,
           Body: base64data,
           Key: `${uuid()}-${originalname}`,
         })
@@ -43,7 +51,7 @@ export class UploadFileService {
     try {
       const deletedFile = await this.s3
         .deleteObject({
-          Bucket: "harazdentalmedia",
+          Bucket: this.bucketName,
           Key: fileKey,
         })
         .promise();
